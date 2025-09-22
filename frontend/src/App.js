@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import Homepage from "./Homepage";
+import AdminHomepage from "./adminHomepage";
 import './App.css';
 
 function LoginCard() {
@@ -9,8 +10,6 @@ function LoginCard() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const BACKEND_URL = "http://127.0.0.1:8000/login";
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -18,7 +17,7 @@ function LoginCard() {
     formData.append("username", username);
     formData.append("password", password);
 
-    const response = await fetch(BACKEND_URL, {
+    const response = await fetch("http://127.0.0.1:8000/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -29,7 +28,11 @@ function LoginCard() {
     const data = await response.json();
     if (response.ok) {
       localStorage.setItem("token", data.access_token);
-      navigate("/home");
+      if (data.user_type === "admin") {
+        navigate("/homeadmin");
+      } else {
+        navigate("/home");
+      }
     } else {
       setError(data.detail || "Login failed");
     }
@@ -117,6 +120,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginCard />} />
         <Route path="/home" element={<Homepage />} />
+        <Route path="/homeadmin" element={<AdminHomepage />} />
       </Routes>
     </Router>
   );
