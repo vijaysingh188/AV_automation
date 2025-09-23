@@ -1,13 +1,12 @@
-from fastapi import FastAPI, Form, HTTPException, Body
+from fastapi import FastAPI, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt
 import uvicorn
 import datetime
-from database import collection  # Import MongoDB collection
-from typing import Optional, List
-from pydantic import BaseModel
-from demo_database import building_collection
-from bson import ObjectId   # ✅ required for _id lookups
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from bson import ObjectId
+from database import building_collection, collection  # Import collections
 from options import device_brand, device_category, device_driver
 
 SECRET_KEY = "your-secret-key"
@@ -15,7 +14,7 @@ ALGORITHM = "HS256"
 
 app = FastAPI()
 
-# Allow React frontend to access the backend
+# Allow React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
@@ -27,13 +26,13 @@ app.add_middleware(
 # ------------------- Models -------------------
 class Device(BaseModel):
     ip_address: str
-    device_category: str
-    device_brand: str
-    device_driver: str
-    functionalities: List[str] = []  
+    device_category: str = Field(..., description="Choose from options.py device_category")
+    device_brand: str = Field(..., description="Choose from options.py device_brand")
+    device_driver: str = Field(..., description="Choose from options.py device_driver")
+    functionalities: List[str] = []
 
 class Room(BaseModel):
-    room_name: str
+    room_number: str
     devices: List[Device]
 
 class Building(BaseModel):
@@ -42,7 +41,7 @@ class Building(BaseModel):
 
 class DeviceUpdate(BaseModel):
     building_id: str
-    room_name: str
+    room_number: str
     device_brand: str
     ip_address: Optional[str] = None
     device_category: Optional[str] = None
@@ -50,7 +49,7 @@ class DeviceUpdate(BaseModel):
 
 class DeviceDelete(BaseModel):
     building_id: str
-    room_name: str
+    room_number: str
     device_brand: str
 
 # ------------------- APIs -------------------
@@ -68,14 +67,21 @@ def adminHomepage():
             continue
         rooms = []
         for r in b.get("rooms", []):
-            if not r.get("room_name"):
+            if not r.get("room_number"):
                 continue
-            r["devices"] = [d for d in r.get("devices", []) if d.get("device_brand")]
+            # Filter devices
+            r["devices"] = [
+                d for d in r.get("devices", [])
+                if d.get("device_brand") in device_brand.keys()
+                and d.get("device_category") in device_category.keys()
+                and d.get("device_driver") in device_driver.values()  # <- fix
+            ]
             rooms.append(r)
         b["_id"] = str(b["_id"])  # stringify ObjectId for frontend
         b["rooms"] = rooms
         filtered.append(b)
     return {"message": "Admin logged!", "buildings": filtered}
+
 
 @app.post("/add-building")
 def add_building(building: Building):
@@ -90,7 +96,7 @@ def edit_device(update: DeviceUpdate):
     result = building_collection.update_one(
         {
             "_id": ObjectId(update.building_id),
-            "rooms.room_name": update.room_name,
+            "rooms.room_number": update.room_number,
             "rooms.devices.device_brand": update.device_brand
         },
         {
@@ -101,7 +107,7 @@ def edit_device(update: DeviceUpdate):
             }
         },
         array_filters=[
-            {"room.room_name": update.room_name},
+            {"room.room_number": update.room_number},
             {"device.device_brand": update.device_brand}
         ]
     )
@@ -112,24 +118,19 @@ def edit_device(update: DeviceUpdate):
 @app.delete("/device/delete")
 def delete_device(data: DeviceDelete):
     result = building_collection.update_one(
-        {"_id": ObjectId(data.building_id), "rooms.room_name": data.room_name},
+        {"_id": ObjectId(data.building_id), "rooms.room_number": data.room_number},
         {"$pull": {"rooms.$.devices": {"device_brand": data.device_brand}}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Device not found")
     return {"message": "Device deleted successfully"}
 
-
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
-    # Look up user in MongoDB
     user = collection.find_one({"username": username, "password": password})
-    
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    user_type = user.get("user_type", "user")  # default to 'user'
-
+    user_type = user.get("user_type", "user")
     payload = {
         "sub": username,
         "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),

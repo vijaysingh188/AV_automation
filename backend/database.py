@@ -1,19 +1,29 @@
 from pymongo import MongoClient
 
+# MongoDB connection
 client = MongoClient("mongodb://localhost:27017/")
 db = client["AvDB"]
+building_collection = db["Building"]  # collection for buildings
 collection = db["admin"]
 
-data = [
-    { "username": "admin", "password": "password", "user_type": "admin" },
-    { "username": "user", "password": "password", "user_type": "user" }
-]
 
-for user in data:
-    collection.update_one(
-        {"username": user["username"]},  # filter
-        {"$setOnInsert": user},          # only insert if not exists
-        upsert=True
-    )
+# data = [
+#   { "username": "admin", "password": "password", "user_type": "admin" },
+#   { "username": "user", "password": "password", "user_type": "user" }
+# ]
 
-print(db.list_collection_names(), "----- collections in AvDB")
+# # Test connection
+# collection.insertMany(data)
+# try:
+#     print(db.list_collection_names(), "----- collections in AvDB")
+# except Exception as e:
+#     print("Error connecting to MongoDB:", e)
+
+
+
+
+
+
+
+
+
