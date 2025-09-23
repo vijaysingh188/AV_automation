@@ -5,6 +5,11 @@ import uvicorn
 import datetime
 from database import collection  # Import MongoDB collection
 
+
+from pydantic import BaseModel, Field
+from typing import List
+from demo_database import building_collection
+
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
 
@@ -18,6 +23,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Pydantic models
+class Device(BaseModel):
+    ip_address: str
+    device_category: str
+    device_name: str
+    device_driver: str
+    functionalities: List[str] = []  # added field for actions
+
+class Room(BaseModel):
+    room_name: str
+    devices: List[Device]
+
+class Building(BaseModel):
+    building_name: str
+    rooms: List[Room]
+
 
 @app.get("/home")
 def homePage():
@@ -25,7 +46,37 @@ def homePage():
 
 @app.get("/homeadmin")
 def adminHomepage():
-    return {"message": "Admin logged!"}
+    buildings = list(building_collection.find({}, {"_id": 0}))
+    
+    # Keep only buildings with a name
+    filtered_buildings = []
+    for b in buildings:
+        if not b.get("building_name"):
+            continue  # skip unnamed buildings
+        rooms = []
+        for r in b.get("rooms", []):
+            if not r.get("room_name"):
+                continue  # skip unnamed rooms
+            # Keep only devices with a name
+            devices = [d for d in r.get("devices", []) if d.get("device_name")]
+            r["devices"] = devices
+            rooms.append(r)
+        b["rooms"] = rooms
+        filtered_buildings.append(b)
+    
+    return {"message": "Admin logged!", "buildings": filtered_buildings}
+
+
+@app.post("/add-building")
+def add_building(building: Building):
+    # Check if building already exists
+    existing = building_collection.find_one({"building_name": building.building_name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Building already exists")
+    
+    # Insert building
+    building_collection.insert_one(building.dict())
+    return {"message": "Building added successfully"}
 
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
