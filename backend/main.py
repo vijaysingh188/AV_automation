@@ -52,6 +52,18 @@ class DeviceDelete(BaseModel):
     room_number: str
     device_brand: str
 
+
+# Add this class under your Models section
+class DeviceAdd(BaseModel):
+    building_id: str
+    room_number: str
+    ip_address: str
+    device_brand: str
+    device_category: str
+    device_driver: str
+    functionalities: List[str] = []
+
+
 # ------------------- APIs -------------------
 
 @app.get("/home")
@@ -124,6 +136,28 @@ def delete_device(data: DeviceDelete):
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Device not found")
     return {"message": "Device deleted successfully"}
+
+
+@app.post("/device/add")
+def add_device(data: DeviceAdd):
+    # Validate options
+    if data.device_brand not in device_brand:
+        raise HTTPException(status_code=400, detail="Invalid device brand")
+    if data.device_category not in device_category:
+        raise HTTPException(status_code=400, detail="Invalid device category")
+    if data.device_driver not in device_driver.values():
+        raise HTTPException(status_code=400, detail="Invalid device driver")
+
+    # Update the building collection
+    result = building_collection.update_one(
+        {"_id": ObjectId(data.building_id), "rooms.room_number": data.room_number},
+        {"$push": {"rooms.$.devices": data.dict()}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Room or building not found")
+
+    return {"message": "Device added successfully"}
 
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
