@@ -28,7 +28,7 @@ class Device(BaseModel):
     ip_address: str
     device_category: str = Field(..., description="Choose from options.py device_category")
     device_brand: str = Field(..., description="Choose from options.py device_brand")
-    device_driver: str = Field(..., description="Choose from options.py device_driver")
+    device_driver: str = Field(..., description="Path to JS driver file, e.g. backend/files/SamsungMDC.js")
     functionalities: List[str] = []
 
 class Room(BaseModel):

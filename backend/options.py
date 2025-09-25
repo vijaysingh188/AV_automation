@@ -61,10 +61,10 @@ device_category = {
 }
 device_driver = {
     # LG
-    "LG_Sensor": "lg_sensor.js",
-    "LG_Camera": "lg_camera.js",
-    "LG_Light": "lg_light.js",
-    "LG_Thermostat": "lg_thermostat.js",
+    "LG_Sensor": "backend\files\lg_sensor.js",
+    "LG_Camera": "backend\files\lg_camera.js",
+    "LG_Light": "backend\files\lg_light.js",
+    "LG_Thermostat": "backend\files\lg_thermostat.js",
 
     # Samsung
     "Samsung_Sensor": "samsung_sensor.js",
@@ -74,42 +74,42 @@ device_driver = {
     "Samsung_Display": "backend\files\SamsungMDC.js",
 
     # Sony
-    "Sony_Sensor": "sony_sensor.js",
-    "Sony_Camera": "sony_camera.js",
-    "Sony_Light": "sony_light.js",
-    "Sony_Thermostat": "sony_thermostat.js",
+    "Sony_Sensor": "backend\files\sony_sensor.js",
+    "Sony_Camera": "backend\files\sony_camera.js",
+    "Sony_Light": "backend\files\sony_light.js",
+    "Sony_Thermostat": "backend\files\sony_thermostat.js",
 
     # Philips
-    "Philips_Sensor": "philips_sensor.js",
-    "Philips_Camera": "philips_camera.js",
-    "Philips_Light": "philips_light.js",
-    "Philips_Thermostat": "philips_thermostat.js",
+    "Philips_Sensor": "backend\files\philips_sensor.js",
+    "Philips_Camera": "backend\files\philips_camera.js",
+    "Philips_Light": "backend\files\philips_light.js",
+    "Philips_Thermostat": "backend\files\philips_thermostat.js",
 
     # Panasonic
-    "Panasonic_Sensor": "panasonic_sensor.js",
-    "Panasonic_Camera": "panasonic_camera.js",
-    "Panasonic_Light": "panasonic_light.js",
-    "Panasonic_Thermostat": "panasonic_thermostat.js",
+    "Panasonic_Sensor": "backend\files\panasonic_sensor.js",
+    "Panasonic_Camera": "backend\files\panasonic_camera.js",
+    "Panasonic_Light": "backend\files\panasonic_light.js",
+    "Panasonic_Thermostat": "backend\files\panasonic_thermostat.js",
 
     # Honeywell
-    "Honeywell_Sensor": "honeywell_sensor.js",
-    "Honeywell_Camera": "honeywell_camera.js",
-    "Honeywell_Thermostat": "honeywell_thermostat.js",
-    "Honeywell_Switch": "honeywell_switch.js",
+    "Honeywell_Sensor": "backend\files\honeywell_sensor.js",
+    "Honeywell_Camera": "backend\files\honeywell_camera.js",
+    "Honeywell_Thermostat": "backend\files\honeywell_thermostat.js",
+    "Honeywell_Switch": "backend\files\honeywell_switch.js",
 
     # Nest (Google)
-    "Nest_Sensor": "nest_sensor.js",
-    "Nest_Camera": "nest_camera.js",
-    "Nest_Thermostat": "nest_thermostat.js",
+    "Nest_Sensor": "backend\files\nest_sensor.js",
+    "Nest_Camera": "backend\files\nest_camera.js",
+    "Nest_Thermostat": "backend\files\nest_thermostat.js",
 
     # Amazon
-    "Amazon_Speaker": "amazon_speaker.js",
-    "Amazon_Display": "amazon_display.js",
-    "Amazon_Camera": "amazon_camera.js",
+    "Amazon_Speaker": "backend\files\amazon_speaker.js",
+    "Amazon_Display": "backend\files\amazon_display.js",
+    "Amazon_Camera": "backend\files\amazon_camera.js",
 
     # Apple
-    "Apple_Sensor": "apple_sensor.js",
-    "Apple_Camera": "apple_camera.js",
-    "Apple_Light": "apple_light.js",
-    "Apple_Thermostat": "apple_thermostat.js"
+    "Apple_Sensor": "backend\files\apple_sensor.js",
+    "Apple_Camera": "backend\files\apple_camera.js",
+    "Apple_Light": "backend\files\apple_light.js",
+    "Apple_Thermostat": "backend\files\apple_thermostat.js"
 }
