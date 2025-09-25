@@ -61,55 +61,55 @@ device_category = {
 }
 device_driver = {
     # LG
-    "LG_Sensor": "backend\files\lg_sensor.js",
-    "LG_Camera": "backend\files\lg_camera.js",
-    "LG_Light": "backend\files\lg_light.js",
-    "LG_Thermostat": "backend\files\lg_thermostat.js",
+    "LG_Sensor": "backend/files/LG_Sensor.js",
+    "LG_Camera": "backend/files/LG_Camera.js",
+    "LG_Light": "backend/files/LG_Light.js",
+    "LG_Thermostat": "backend/files/LG_Thermostat.js",
 
     # Samsung
-    "Samsung_Sensor": "samsung_sensor.js",
-    "Samsung_Camera": "samsung_camera.js",
-    "Samsung_Light": "samsung_light.js",
-    "Samsung_Thermostat": "samsung_thermostat.js",
-    "Samsung_Display": "backend\files\SamsungMDC.js",
+    "Samsung_Sensor": "backend/files/Samsung_Sensor.js",
+    "Samsung_Camera": "backend/files/Samsung_Camera.js",
+    "Samsung_Light": "backend/files/Samsung_Light.js",
+    "Samsung_Thermostat": "backend/files/Samsung_Thermostat.js",
+    "Samsung_Display": "backend/files/Samsung_Display.js",
 
     # Sony
-    "Sony_Sensor": "backend\files\sony_sensor.js",
-    "Sony_Camera": "backend\files\sony_camera.js",
-    "Sony_Light": "backend\files\sony_light.js",
-    "Sony_Thermostat": "backend\files\sony_thermostat.js",
+    "Sony_Sensor": "backend/files/Sony_Sensor.js",
+    "Sony_Camera": "backend/files/Sony_Camera.js",
+    "Sony_Light": "backend/files/Sony_Light.js",
+    "Sony_Thermostat": "backend/files/Sony_Thermostat.js",
 
     # Philips
-    "Philips_Sensor": "backend\files\philips_sensor.js",
-    "Philips_Camera": "backend\files\philips_camera.js",
-    "Philips_Light": "backend\files\philips_light.js",
-    "Philips_Thermostat": "backend\files\philips_thermostat.js",
+    "Philips_Sensor": "backend/files/philips_sensor.js",
+    "Philips_Camera": "backend/files/philips_camera.js",
+    "Philips_Light": "backend/files/philips_light.js",
+    "Philips_Thermostat": "backend/files/philips_thermostat.js",
 
     # Panasonic
-    "Panasonic_Sensor": "backend\files\panasonic_sensor.js",
-    "Panasonic_Camera": "backend\files\panasonic_camera.js",
-    "Panasonic_Light": "backend\files\panasonic_light.js",
-    "Panasonic_Thermostat": "backend\files\panasonic_thermostat.js",
+    "Panasonic_Sensor": "backend/files/Panasonic_Sensor.js",
+    "Panasonic_Camera": "backend/files/Panasonic_Camera.js",
+    "Panasonic_Light": "backend/files/Panasonic_Light.js",
+    "Panasonic_Thermostat": "backend/files/Panasonic_Thermostat.js",
 
     # Honeywell
-    "Honeywell_Sensor": "backend\files\honeywell_sensor.js",
-    "Honeywell_Camera": "backend\files\honeywell_camera.js",
-    "Honeywell_Thermostat": "backend\files\honeywell_thermostat.js",
-    "Honeywell_Switch": "backend\files\honeywell_switch.js",
+    "Honeywell_Sensor": "backend/files/honeywell_sensor.js",
+    "Honeywell_Camera": "backend/files/honeywell_camera.js",
+    "Honeywell_Thermostat": "backend/files/honeywell_thermostat.js",
+    "Honeywell_Switch": "backend/files/honeywell_switch.js",
 
     # Nest (Google)
-    "Nest_Sensor": "backend\files\nest_sensor.js",
-    "Nest_Camera": "backend\files\nest_camera.js",
-    "Nest_Thermostat": "backend\files\nest_thermostat.js",
+    "Nest_Sensor": "backend/files/nest_sensor.js",
+    "Nest_Camera": "backend/files/nest_camera.js",
+    "Nest_Thermostat": "backend/files/nest_thermostat.js",
 
     # Amazon
-    "Amazon_Speaker": "backend\files\amazon_speaker.js",
-    "Amazon_Display": "backend\files\amazon_display.js",
-    "Amazon_Camera": "backend\files\amazon_camera.js",
+    "Amazon_Speaker": "backend/files/amazon_speaker.js",
+    "Amazon_Display": "backend/files/amazon_display.js",
+    "Amazon_Camera": "backend/files/amazon_camera.js",
 
     # Apple
-    "Apple_Sensor": "backend\files\apple_sensor.js",
-    "Apple_Camera": "backend\files\apple_camera.js",
-    "Apple_Light": "backend\files\apple_light.js",
-    "Apple_Thermostat": "backend\files\apple_thermostat.js"
+    "Apple_Sensor": "backend/files/apple_sensor.js",
+    "Apple_Camera": "backend/files/apple_camera.js",
+    "Apple_Light": "backend/files/apple_light.js",
+    "Apple_Thermostat": "backend/files/apple_thermostat.js"
 }

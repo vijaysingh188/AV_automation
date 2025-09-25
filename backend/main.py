@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt
 import uvicorn
@@ -26,8 +26,8 @@ app.add_middleware(
 # ------------------- Models -------------------
 class Device(BaseModel):
     ip_address: str
-    device_category: str = Field(..., description="Choose from options.py device_category")
     device_brand: str = Field(..., description="Choose from options.py device_brand")
+    device_category: str = Field(..., description="Choose from options.py device_category")
     device_driver: str = Field(..., description="Path to JS driver file, e.g. backend/files/SamsungMDC.js")
     functionalities: List[str] = []
 
@@ -128,10 +128,14 @@ def edit_device(update: DeviceUpdate):
     return {"message": "Device updated successfully"}
 
 @app.delete("/device/delete")
-def delete_device(data: DeviceDelete):
+def delete_device(
+    building_id: str = Query(...),
+    room_name: str = Query(...),
+    device_brand: str = Query(...)
+):
     result = building_collection.update_one(
-        {"_id": ObjectId(data.building_id), "rooms.room_number": data.room_number},
-        {"$pull": {"rooms.$.devices": {"device_brand": data.device_brand}}}
+        {"_id": ObjectId(building_id), "rooms.room_number": room_name},
+        {"$pull": {"rooms.$.devices": {"device_brand": device_brand}}}
     )
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Device not found")

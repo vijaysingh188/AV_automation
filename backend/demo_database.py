@@ -19,14 +19,15 @@ data = {
                     "ip_address": "192.168.1.10",
                     "device_category": "Sensor",
                     "device_brand": "Sony",
-                    "device_driver": "sony_sensor.yml",
+                    "device_driver" : "backend/files/Sony_Sensor.js",
                     "functionalities": []
                 },
                 {
                     "ip_address": "192.168.1.11",
                     "device_category": "Camera",
                     "device_brand": "Samsung",
-                    "device_driver": "samsung_camera.yml",
+                    "device_driver" : "backend/files/Samsung_Camera.js",
+
                     "functionalities": []
                 }
             ]
@@ -38,7 +39,7 @@ data = {
                     "ip_address": "192.168.1.12",
                     "device_category": "Light",
                     "device_brand": "LG",
-                    "device_driver": "lg_light.yml",
+                    "device_driver" : "backend/files/LG_Light.js",
                     "functionalities": []
                 }
             ]
