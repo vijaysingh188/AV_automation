@@ -61,54 +61,55 @@ device_category = {
 }
 device_driver = {
     # LG
-    "LG_Sensor": "lg_sensor.yml",
-    "LG_Camera": "lg_camera.yml",
-    "LG_Light": "lg_light.yml",
-    "LG_Thermostat": "lg_thermostat.yml",
+    "LG_Sensor": "lg_sensor.js",
+    "LG_Camera": "lg_camera.js",
+    "LG_Light": "lg_light.js",
+    "LG_Thermostat": "lg_thermostat.js",
 
     # Samsung
-    "Samsung_Sensor": "samsung_sensor.yml",
-    "Samsung_Camera": "samsung_camera.yml",
-    "Samsung_Light": "samsung_light.yml",
-    "Samsung_Thermostat": "samsung_thermostat.yml",
+    "Samsung_Sensor": "samsung_sensor.js",
+    "Samsung_Camera": "samsung_camera.js",
+    "Samsung_Light": "samsung_light.js",
+    "Samsung_Thermostat": "samsung_thermostat.js",
+    "Samsung_Display": "backend\files\SamsungMDC.js",
 
     # Sony
-    "Sony_Sensor": "sony_sensor.yml",
-    "Sony_Camera": "sony_camera.yml",
-    "Sony_Light": "sony_light.yml",
-    "Sony_Thermostat": "sony_thermostat.yml",
+    "Sony_Sensor": "sony_sensor.js",
+    "Sony_Camera": "sony_camera.js",
+    "Sony_Light": "sony_light.js",
+    "Sony_Thermostat": "sony_thermostat.js",
 
     # Philips
-    "Philips_Sensor": "philips_sensor.yml",
-    "Philips_Camera": "philips_camera.yml",
-    "Philips_Light": "philips_light.yml",
-    "Philips_Thermostat": "philips_thermostat.yml",
+    "Philips_Sensor": "philips_sensor.js",
+    "Philips_Camera": "philips_camera.js",
+    "Philips_Light": "philips_light.js",
+    "Philips_Thermostat": "philips_thermostat.js",
 
     # Panasonic
-    "Panasonic_Sensor": "panasonic_sensor.yml",
-    "Panasonic_Camera": "panasonic_camera.yml",
-    "Panasonic_Light": "panasonic_light.yml",
-    "Panasonic_Thermostat": "panasonic_thermostat.yml",
+    "Panasonic_Sensor": "panasonic_sensor.js",
+    "Panasonic_Camera": "panasonic_camera.js",
+    "Panasonic_Light": "panasonic_light.js",
+    "Panasonic_Thermostat": "panasonic_thermostat.js",
 
     # Honeywell
-    "Honeywell_Sensor": "honeywell_sensor.yml",
-    "Honeywell_Camera": "honeywell_camera.yml",
-    "Honeywell_Thermostat": "honeywell_thermostat.yml",
-    "Honeywell_Switch": "honeywell_switch.yml",
+    "Honeywell_Sensor": "honeywell_sensor.js",
+    "Honeywell_Camera": "honeywell_camera.js",
+    "Honeywell_Thermostat": "honeywell_thermostat.js",
+    "Honeywell_Switch": "honeywell_switch.js",
 
     # Nest (Google)
-    "Nest_Sensor": "nest_sensor.yml",
-    "Nest_Camera": "nest_camera.yml",
-    "Nest_Thermostat": "nest_thermostat.yml",
+    "Nest_Sensor": "nest_sensor.js",
+    "Nest_Camera": "nest_camera.js",
+    "Nest_Thermostat": "nest_thermostat.js",
 
     # Amazon
-    "Amazon_Speaker": "amazon_speaker.yml",
-    "Amazon_Display": "amazon_display.yml",
-    "Amazon_Camera": "amazon_camera.yml",
+    "Amazon_Speaker": "amazon_speaker.js",
+    "Amazon_Display": "amazon_display.js",
+    "Amazon_Camera": "amazon_camera.js",
 
     # Apple
-    "Apple_Sensor": "apple_sensor.yml",
-    "Apple_Camera": "apple_camera.yml",
-    "Apple_Light": "apple_light.yml",
-    "Apple_Thermostat": "apple_thermostat.yml"
+    "Apple_Sensor": "apple_sensor.js",
+    "Apple_Camera": "apple_camera.js",
+    "Apple_Light": "apple_light.js",
+    "Apple_Thermostat": "apple_thermostat.js"
 }

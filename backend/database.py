@@ -7,17 +7,17 @@ building_collection = db["Building"]  # collection for buildings
 collection = db["admin"]
 
 
-# data = [
-#   { "username": "admin", "password": "password", "user_type": "admin" },
-#   { "username": "user", "password": "password", "user_type": "user" }
-# ]
+data = [
+  { "username": "admin", "password": "password", "user_type": "admin" },
+  { "username": "user", "password": "password", "user_type": "user" }
+]
 
-# # Test connection
-# collection.insertMany(data)
-# try:
-#     print(db.list_collection_names(), "----- collections in AvDB")
-# except Exception as e:
-#     print("Error connecting to MongoDB:", e)
+# Test connection
+collection.insert_many(data)
+try:
+    print(db.list_collection_names(), "----- collections in AvDB")
+except Exception as e:
+    print("Error connecting to MongoDB:", e)
 
 
 
