@@ -1,8 +1,12 @@
-from fastapi import FastAPI, Form, HTTPException, Query
+from fastapi import FastAPI, Form, HTTPException, Query, Body
 from fastapi.middleware.cors import CORSMiddleware
 from jose import jwt
 import uvicorn
 import datetime
+import subprocess
+import json
+import yaml
+import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from bson import ObjectId
@@ -63,6 +67,8 @@ class DeviceAdd(BaseModel):
     device_driver: str
     functionalities: List[str] = []
 
+class DeviceDriverRequest(BaseModel):
+    device_driver: str  # Path to the JS file, e.g., backend/files/Sony_Sensor.js
 
 # ------------------- APIs -------------------
 
@@ -157,8 +163,14 @@ def add_device(data: DeviceAdd):
         raise HTTPException(status_code=400, detail="Invalid device brand")
     if data.device_category not in device_category:
         raise HTTPException(status_code=400, detail="Invalid device category")
-    if data.device_driver not in device_driver.values():
-        raise HTTPException(status_code=400, detail="Invalid device driver")
+
+    # Compose the key for device_driver mapping
+    driver_key = f"{data.device_brand}_{data.device_category}"
+    if driver_key not in device_driver:
+        raise HTTPException(status_code=400, detail="No driver found for this brand/category")
+
+    # Set the correct device_driver
+    data.device_driver = device_driver[driver_key]
 
     # Update the building collection
     result = building_collection.update_one(
@@ -184,6 +196,29 @@ def login(username: str = Form(...), password: str = Form(...)):
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return {"access_token": token, "user_type": user_type}
+
+
+
+@app.post("/device/functions")
+def get_device_functions(data: DeviceDriverRequest):
+    # Replace .js with .yml to get the YAML file path
+    # yaml_path = os.path.splitext(data.device_driver)[0] + ".yml"
+    
+    yaml_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(os.path.splitext(data.device_driver)[0]) + ".yml")
+    print(yaml_path,'======================yaml_path')
+    if not os.path.isfile(yaml_path):
+        return {"functions": [], "error": f"YAML file not found: {yaml_path}"}
+    try:
+        with open(yaml_path, "r") as f:
+            print(f,'====f')
+            yml = yaml.safe_load(f)
+            print(yml,'-------------------yml')
+        functions = yml.get("functions", [])
+        return {"functions": functions}
+    except Exception as e:
+        print(e,'==================e')
+        return {"functions": [], "error": str(e)}
+    
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")

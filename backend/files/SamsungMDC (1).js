@@ -443,15 +443,3 @@ define(["require", "exports", "system_lib/Driver", "system_lib/Metadata"], funct
         }
     }
 });
-if (typeof process !== "undefined" && process.argv && process.argv.includes('--list-functions')) {
-  console.log(JSON.stringify([
-    "Power On",
-    "Power Off",
-    "Set Input",
-    "Volume Up",
-    "Volume Down",
-    "Get Status",
-    "Reboot"
-  ]));
-  process.exit(0);
-}
