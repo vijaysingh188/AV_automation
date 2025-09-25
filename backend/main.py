@@ -198,26 +198,27 @@ def login(username: str = Form(...), password: str = Form(...)):
     return {"access_token": token, "user_type": user_type}
 
 
-
 @app.post("/device/functions")
 def get_device_functions(data: DeviceDriverRequest):
-    # Replace .js with .yml to get the YAML file path
-    # yaml_path = os.path.splitext(data.device_driver)[0] + ".yml"
-    
-    yaml_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(os.path.splitext(data.device_driver)[0]) + ".yml")
-    print(yaml_path,'======================yaml_path')
-    if not os.path.isfile(yaml_path):
-        return {"functions": [], "error": f"YAML file not found: {yaml_path}"}
+    # Use absolute path for the JS file
+    js_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
+    print(js_path, '======================js_path')
+    if not os.path.isfile(js_path):
+        return {"functions": [], "error": f"JS file not found: {js_path}"}
     try:
-        with open(yaml_path, "r") as f:
-            print(f,'====f')
-            yml = yaml.safe_load(f)
-            print(yml,'-------------------yml')
-        functions = yml.get("functions", [])
+        result = subprocess.run(
+            ["node", js_path, "--list-functions"],
+            capture_output=True, text=True, check=True
+        )
+        # Parse the output as JSON
+        functions = json.loads(result.stdout.strip())
+        print(functions, '-------------------functions')
         return {"functions": functions}
     except Exception as e:
-        print(e,'==================e')
+        print(e, '==================e')
         return {"functions": [], "error": str(e)}
+    
+
     
 
 if __name__ == "__main__":
