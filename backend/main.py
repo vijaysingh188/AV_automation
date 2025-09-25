@@ -105,6 +105,18 @@ def add_building(building: Building):
 
 @app.put("/device/edit")
 def edit_device(update: DeviceUpdate):
+    # Build the update fields dynamically (only update provided fields)
+    update_fields = {}
+    if update.ip_address is not None:
+        update_fields["rooms.$[room].devices.$[device].ip_address"] = update.ip_address
+    if update.device_category is not None:
+        update_fields["rooms.$[room].devices.$[device].device_category"] = update.device_category
+    if update.device_driver is not None:
+        update_fields["rooms.$[room].devices.$[device].device_driver"] = update.device_driver
+
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
     result = building_collection.update_one(
         {
             "_id": ObjectId(update.building_id),
@@ -112,11 +124,7 @@ def edit_device(update: DeviceUpdate):
             "rooms.devices.device_brand": update.device_brand
         },
         {
-            "$set": {
-                "rooms.$[room].devices.$[device].ip_address": update.ip_address,
-                "rooms.$[room].devices.$[device].device_category": update.device_category,
-                "rooms.$[room].devices.$[device].device_driver": update.device_driver
-            }
+            "$set": update_fields
         },
         array_filters=[
             {"room.room_number": update.room_number},
