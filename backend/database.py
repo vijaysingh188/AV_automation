@@ -1,20 +1,23 @@
 from pymongo import MongoClient
 
-# MongoDB connection
-# client = MongoClient("mongodb://localhost:27017/")
-client = MongoClient("mongodb://mongodb:27017/")
+client = MongoClient("mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+
 db = client["AvDB"]
-building_collection = db["Building"]  # collection for buildings
+building_collection = db["Building"]
 collection = db["admin"]
 
+# Ensure unique usernames
+collection.create_index("username", unique=True)
 
 data = [
   { "username": "admin", "password": "password", "user_type": "admin" },
   { "username": "user", "password": "password", "user_type": "user" }
 ]
 
-# Test connection
-collection.insert_many(data)
+for user in data:
+    if not collection.find_one({"username": user["username"]}):
+        collection.insert_one(user)
+
 try:
     print(db.list_collection_names(), "----- collections in AvDB")
 except Exception as e:

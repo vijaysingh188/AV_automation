@@ -3,8 +3,9 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import List
 import options  # Assuming options.py is in the same directory
 from main import Building, Room, Device
+client = MongoClient("mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
-client = MongoClient("mongodb://localhost:27017/")
+# client = MongoClient("mongodb://localhost:27017/")
 db = client["AvDB"]
 building_collection = db["Building"]
 
