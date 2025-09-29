@@ -1,25 +1,35 @@
-version: "3.9"
-
 services:
-  backend:
-    build:
-      context: ./backend
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
     volumes:
-      - ./backend:/app
+      - mongo_data:/data/db
+
+  backend:
+    build: ./backend
+    container_name: fastapi
     ports:
       - "8000:8000"
+    depends_on:
+      - mongodb
     environment:
-      - PYTHONUNBUFFERED=1
+      - MONGO_URI=mongodb://mongodb:27017/your_db_name
 
   frontend:
-    build:
-      context: ./frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+    build: ./frontend
+    container_name: react
     ports:
       - "3000:3000"
-    environment:
-      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
+
+  init-db:
+    build: ./backend
+    command: ["python", "database.py"]
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:

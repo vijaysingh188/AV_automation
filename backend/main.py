@@ -70,6 +70,10 @@ class DeviceAdd(BaseModel):
 class DeviceDriverRequest(BaseModel):
     device_driver: str  # Path to the JS file, e.g., backend/files/Sony_Sensor.js
 
+class RoomAddRequest(BaseModel):
+    building_id: str
+    room_number: str
+
 # ------------------- APIs -------------------
 
 @app.get("/home")
@@ -102,11 +106,14 @@ def adminHomepage():
 
 
 @app.post("/add-building")
-def add_building(building: Building):
-    existing = building_collection.find_one({"building_name": building.building_name})
+def add_building(data: dict = Body(...)):
+    building_name = data.get("building_name")
+    if not building_name:
+        raise HTTPException(status_code=400, detail="Building name required")
+    existing = building_collection.find_one({"building_name": building_name})
     if existing:
         raise HTTPException(status_code=400, detail="Building already exists")
-    building_collection.insert_one(building.dict())
+    building_collection.insert_one({"building_name": building_name, "rooms": []})
     return {"message": "Building added successfully"}
 
 @app.put("/device/edit")
@@ -217,9 +224,16 @@ def get_device_functions(data: DeviceDriverRequest):
     except Exception as e:
         print(e, '==================e')
         return {"functions": [], "error": str(e)}
-    
 
+@app.post("/add-room")
+def add_room(data: RoomAddRequest):
+    result = building_collection.update_one(
+        {"_id": ObjectId(data.building_id)},
+        {"$push": {"rooms": {"room_number": data.room_number, "devices": []}}}
+    )
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Building not found")
+    return {"message": "Room added successfully"}
     
-
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")

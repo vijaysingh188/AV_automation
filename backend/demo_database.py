@@ -13,7 +13,7 @@ data = {
     "building_name": "Main Building",
     "rooms": [
         {
-            "room_number": "Room 101",
+            "room_number": "101",
             "devices": [
                 {
                     "ip_address": "192.168.1.10",
@@ -33,7 +33,7 @@ data = {
             ]
         },
         {
-            "room_number": "Room 102",
+            "room_number": "102",
             "devices": [
                 {
                     "ip_address": "192.168.1.12",
