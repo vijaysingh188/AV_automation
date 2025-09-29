@@ -51,14 +51,14 @@ function Homepage() {
   });
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/homeadmin")
+    fetch("http://52.66.179.118:8000/homeadmin")
       .then(res => res.json())
       .then(data => setBuildings(data.buildings || []))
       .catch(() => console.log("Failed to load homepage."));
   }, []);
 
   const refreshData = () => {
-    fetch("http://127.0.0.1:8000/homeadmin")
+    fetch("http://52.66.179.118:8000/homeadmin")
       .then(res => res.json())
       .then(data => setBuildings(data.buildings || []));
   };
@@ -87,7 +87,7 @@ function Homepage() {
 
   const handleEditSave = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/device/edit", {
+      const response = await fetch("http://52.66.179.118:8000/device/edit", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -120,7 +120,7 @@ function Homepage() {
         room_name: roomName,
         device_brand: deviceName
       });
-      const response = await fetch(`http://127.0.0.1:8000/device/delete?${params.toString()}`, {
+      const response = await fetch(`http://52.66.179.118:8000/device/delete?${params.toString()}`, {
         method: "DELETE"
       });
       if (response.ok) {

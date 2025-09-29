@@ -3,3 +3,6 @@ __pycache__
 .git
 .gitignore
 Dockerfile
+node_modules
+
+
