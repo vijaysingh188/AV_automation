@@ -12,6 +12,11 @@ from pydantic import BaseModel, Field
 from bson import ObjectId
 from database import building_collection, collection  # Import collections
 from options import device_brand, device_category, device_driver
+import subprocess
+from pprint import pprint
+
+app = FastAPI()
+
 
 SECRET_KEY = "your-secret-key"
 ALGORITHM = "HS256"
@@ -234,6 +239,19 @@ def add_room(data: RoomAddRequest):
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Building not found")
     return {"message": "Room added successfully"}
+
+
+
+@app.post("/device/sony-action")
+async def sony_action(ip: str = Body(...), action: str = Body(...)):
+    result = subprocess.run(
+        ["node", "files/Sony_Audio.js", "--ip", ip, "--action", action],
+        capture_output=True, text=True
+    )
+    print('-----------')
+    pprint(result)
+    print('-----------')
+    return {"message": result.stdout or "Action sent"}
     
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
