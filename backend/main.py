@@ -265,24 +265,25 @@ async def sony_action(ip: str = Body(...), action: str = Body(...)):
 def device_do_action(data: DeviceActionRequest):
     print(data, '====data')
     # Always resolve relative to the backend directory
-    backend_dir = os.path.dirname(__file__)
-    js_path = os.path.abspath(os.path.join(backend_dir, "..", data.device_driver))
-    print(js_path, '=======js_path')
+    # backend_dir = os.path.dirname(__file__)
+    # js_path = os.path.abspath(os.path.join(backend_dir, "..", data.device_driver))
+    # print(js_path, '=======js_path')
 
-    # Read and print the first 5 lines of the JS file
-    if os.path.isfile(js_path):
-        with open(js_path, 'r', encoding='utf-8') as f:
-            for i in range(5):
-                line = f.readline()
-                if not line:
-                    break
-                print(f"JS file line {i+1}: {line.strip()}")
-    else:
-        return {"error": f"----------JS file not found: {js_path}"}
+    # # Read and print the first 5 lines of the JS file
+    # if os.path.isfile(js_path):
+    #     with open(js_path, 'r', encoding='utf-8') as f:
+    #         for i in range(5):
+    #             line = f.readline()
+    #             if not line:
+    #                 break
+    #             print(f"JS file line {i+1}: {line.strip()}")
+    # else:
+    #     return {"error": f"----------JS file not found: {js_path}"}
 
     try:
+        sony_test = "C:\\Users\\deepa\\Documents\\AV_automation\\AV_automation\\backend\\files\\sony_test.py"
         result = subprocess.run(
-            ["node", js_path, "--ip", data.ip, "--action", data.action],
+            ["python", sony_test, "--ip", data.ip, "--action", data.action],
             capture_output=True, text=True
         )
         print("--------------")

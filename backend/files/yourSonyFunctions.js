@@ -29,6 +29,7 @@ async function setAudioVolume(ip, psk, volumeChange) {
     body
   });
   const data = await response.json();
+  console.log("api response==========:", data);
   return data;
 }
 
