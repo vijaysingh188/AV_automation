@@ -1,7 +1,8 @@
 from pymongo import MongoClient
 
-client = MongoClient("mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MONGO_URI = "mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/AvDB?retryWrites=true&w=majority&appName=Cluster0"
 
+client = MongoClient(MONGO_URI)
 db = client["AvDB"]
 building_collection = db["Building"]
 collection = db["admin"]

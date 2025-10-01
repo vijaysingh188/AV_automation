@@ -79,6 +79,11 @@ class RoomAddRequest(BaseModel):
     building_id: str
     room_number: str
 
+class DeviceActionRequest(BaseModel):
+    device_driver: str  # Path to JS file, e.g. backend/files/Sony_Sensor.js
+    ip: str
+    action: str
+
 # ------------------- APIs -------------------
 
 @app.get("/home")
@@ -252,6 +257,52 @@ async def sony_action(ip: str = Body(...), action: str = Body(...)):
     pprint(result)
     print('-----------')
     return {"message": result.stdout or "Action sent"}
+
+
+
+    
+@app.post("/device/do-action")
+def device_do_action(data: DeviceActionRequest):
+    print(data, '====data')
+    # Always resolve relative to the backend directory
+    backend_dir = os.path.dirname(__file__)
+    js_path = os.path.abspath(os.path.join(backend_dir, "..", data.device_driver))
+    print(js_path, '=======js_path')
+
+    # Read and print the first 5 lines of the JS file
+    if os.path.isfile(js_path):
+        with open(js_path, 'r', encoding='utf-8') as f:
+            for i in range(5):
+                line = f.readline()
+                if not line:
+                    break
+                print(f"JS file line {i+1}: {line.strip()}")
+    else:
+        return {"error": f"----------JS file not found: {js_path}"}
+
+    try:
+        result = subprocess.run(
+            ["node", js_path, "--ip", data.ip, "--action", data.action],
+            capture_output=True, text=True
+        )
+        print("--------------")
+        pprint(result)
+        print("--------------")
+        return {"message": result.stdout.strip() or "No output from device script."}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+
+# @app.post("/device/sony-action")
+# async def sony_action(ip: str = Body(...), action: str = Body(...)):
+#     result = subprocess.run(
+#         ["node", "files/Sony_Audio.js", "--ip", ip, "--action", action],
+#         capture_output=True, text=True
+#     )
+#     pprint(result)
+#     print('-----------')
+#     return {"message": result.stdout or "Action sent"}
     
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")

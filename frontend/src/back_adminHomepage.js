@@ -326,8 +326,6 @@ function Homepage() {
                           <IconButton
                             color="primary"
                             size="small"
-                            title="Add Device"
-                            aria-label="Add Device"
                             onClick={() => {
                               setAddRoom({
                                 buildingId: b._id,
@@ -448,9 +446,8 @@ function Homepage() {
         <Box sx={modalStyle}>
           <h2>Add Building</h2>
           <form onSubmit={handleAddBuilding}>
-            <label htmlFor="buildingName">Building Name</label>
             <TextField
-              id="buildingName"
+              label="Building Name"
               value={newBuildingName}
               onChange={e => setNewBuildingName(e.target.value)}
               required
@@ -614,25 +611,6 @@ function Homepage() {
                   boxShadow: 1,
                   py: 1.2,
                   background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)"
-                }}
-                onClick={async () => {
-                  // Prepare the body data for the new dynamic endpoint
-                  const body = {
-                    device_driver: currentDevice.device_driver, // JS file path
-                    ip: currentDevice.ip_address,
-                    action: f // e.g., "Power On"
-                  };
-                  console.log(body, '====body'); // Log the body before sending
-
-                  // Call backend API for dynamic device action
-                  const res = await fetch("http://127.0.0.1:8000/device/do-action", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body)
-                  });
-                  const data = await res.json();
-                  console.log(data, '============data.message'); // This prints to browser console
-                  // alert(data.message); // This shows a popup
                 }}
               >
                 {f}
