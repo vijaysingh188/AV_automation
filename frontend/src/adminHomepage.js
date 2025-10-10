@@ -710,7 +710,7 @@ function Homepage() {
           >
             {driverOptions.map(option => (
               <MenuItem key={option} value={option}>
-                {option.split(/[\\/]/).pop().replace(/\.js$/, "")}
+                {option.split(/[\\/]/).pop().replace(/\.py$/, "")}
               </MenuItem>
             ))}
           </TextField>
