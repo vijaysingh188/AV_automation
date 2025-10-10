@@ -49,9 +49,9 @@ npm start -- --host 0.0.0.0
 nohup npm start -- --host 0.0.0.0 > frontend.log 2>&1 &
 
 
-sudo lsof -i :3000
+sudo lsof -i :3000   or netstat -ano | grep :3000
 sudo netstat -tulnp | grep 3000
-sudo kill -9 <PID>
+sudo kill -9 <PID>   or taskkill /F /PID 1234
 
 
 

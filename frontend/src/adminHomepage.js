@@ -218,6 +218,12 @@ function Homepage() {
     refreshData();
   };
 
+  // helper to prevent backdrop/escape closing - only close on explicit calls
+  const preventClose = setter => (event, reason) => {
+    if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+    setter(false);
+  };
+
   return (
     <Box
       sx={{
@@ -444,8 +450,15 @@ function Homepage() {
         )}
       </Grid>
       {/* Add Building Modal */}
-      <Modal open={openAddBuilding} onClose={() => setOpenAddBuilding(false)}>
-        <Box sx={modalStyle}>
+      <Modal
+        open={openAddBuilding}
+        onClose={preventClose(setOpenAddBuilding)}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        BackdropProps={{ invisible: true }}
+      >
+        <Box sx={{ ...modalStyle, zIndex: 1400 }}>
           <h2>Add Building</h2>
           <form onSubmit={handleAddBuilding}>
             <label htmlFor="buildingName">Building Name</label>
@@ -464,12 +477,28 @@ function Homepage() {
             >
               Add
             </Button>
+            <Button
+              onClick={() => setOpenAddBuilding(false)}
+              variant="outlined"
+              color="secondary"
+              sx={{ mt: 2, ml: 2 }}
+            >
+              Close
+            </Button>
           </form>
         </Box>
       </Modal>
+
       {/* Add Room Modal */}
-      <Modal open={openAddRoom} onClose={() => setOpenAddRoom(false)}>
-        <Box sx={modalStyle}>
+      <Modal
+        open={openAddRoom}
+        onClose={preventClose(setOpenAddRoom)}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        BackdropProps={{ invisible: true }}
+      >
+        <Box sx={{ ...modalStyle, zIndex: 1410 }}>
           <h2>Add Room</h2>
           <form onSubmit={handleAddRoom}>
             <TextField
@@ -487,12 +516,28 @@ function Homepage() {
             >
               Add
             </Button>
+            <Button
+              onClick={() => setOpenAddRoom(false)}
+              variant="outlined"
+              color="secondary"
+              sx={{ mt: 2, ml: 2 }}
+            >
+              Close
+            </Button>
           </form>
         </Box>
       </Modal>
+
       {/* Add Device Modal */}
-      <Modal open={openAdd} onClose={() => setOpenAdd(false)}>
-        <Box sx={modalStyle}>
+      <Modal
+        open={openAdd}
+        onClose={preventClose(setOpenAdd)}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        BackdropProps={{ invisible: true }}
+      >
+        <Box sx={{ ...modalStyle, zIndex: 1420 }}>
           <h2>Add Device</h2>
           <form
             onSubmit={async e => {
@@ -589,9 +634,17 @@ function Homepage() {
           </form>
         </Box>
       </Modal>
+
       {/* Options Modal */}
-      <Modal open={openOptions} onClose={handleOptionsClose}>
-        <Box sx={{ ...modalStyle, minWidth: 350, maxWidth: 400 }}>
+      <Modal
+        open={openOptions}
+        onClose={preventClose(setOpenOptions)}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        BackdropProps={{ invisible: true }}
+      >
+        <Box sx={{ ...modalStyle, minWidth: 350, maxWidth: 400, zIndex: 1430 }}>
           <Typography
             variant="h5"
             align="center"
@@ -650,9 +703,17 @@ function Homepage() {
           </Button>
         </Box>
       </Modal>
+
       {/* Edit Modal */}
-      <Modal open={openEdit} onClose={handleEditClose}>
-        <Box sx={modalStyle}>
+      <Modal
+        open={openEdit}
+        onClose={preventClose(setOpenEdit)}
+        disableAutoFocus
+        disableEnforceFocus
+        disableRestoreFocus
+        BackdropProps={{ invisible: true }}
+      >
+        <Box sx={{ ...modalStyle, zIndex: 1440 }}>
           <h2>Edit Device</h2>
           <TextField
             label="IP Address"
@@ -710,7 +771,7 @@ function Homepage() {
           >
             {driverOptions.map(option => (
               <MenuItem key={option} value={option}>
-                {option.split(/[\\/]/).pop().replace(/\.js$/, "")}
+                {option.split(/[\\/]/).pop().replace(/\.py$/, "")}
               </MenuItem>
             ))}
           </TextField>
