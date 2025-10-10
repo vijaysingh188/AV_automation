@@ -218,13 +218,13 @@ def login(username: str = Form(...), password: str = Form(...)):
 @app.post("/device/functions")
 def get_device_functions(data: DeviceDriverRequest):
     # Use absolute path for the JS file
-    js_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
-    print(js_path, '======================js_path')
-    if not os.path.isfile(js_path):
-        return {"functions": [], "error": f"JS file not found: {js_path}"}
+    driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
+    print(driver_path, '======================driver_path')
+    if not os.path.isfile(driver_path):
+        return {"functions": [], "error": f"JS file not found: {driver_path}"}
     try:
         result = subprocess.run(
-            ["node", js_path, "--list-functions"],
+            ["python", driver_path, "--list-functions"],
             capture_output=True, text=True, check=True
         )
         # Parse the output as JSON
@@ -263,27 +263,26 @@ async def sony_action(ip: str = Body(...), action: str = Body(...)):
     
 @app.post("/device/do-action")
 def device_do_action(data: DeviceActionRequest):
-    print(data, '====data')
-    # Always resolve relative to the backend directory
-    # backend_dir = os.path.dirname(__file__)
-    # js_path = os.path.abspath(os.path.join(backend_dir, "..", data.device_driver))
-    # print(js_path, '=======js_path')
+    print(data, '==================data')
+    driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
 
-    # # Read and print the first 5 lines of the JS file
-    # if os.path.isfile(js_path):
-    #     with open(js_path, 'r', encoding='utf-8') as f:
+    print(driver_path, '=======driver_path')
+
+    # Read and print the first 5 lines of the python driver path
+    # if os.path.isfile(driver_path):
+    #     with open(driver_path, 'r', encoding='utf-8') as f:
     #         for i in range(5):
     #             line = f.readline()
     #             if not line:
     #                 break
     #             print(f"JS file line {i+1}: {line.strip()}")
     # else:
-    #     return {"error": f"----------JS file not found: {js_path}"}
+    #     return {"error": f"----------JS file not found: {driver_path}"}
 
     try:
-        sony_test = "C:\\Users\\deepa\\Documents\\AV_automation\\AV_automation\\backend\\files\\sony_test.py"
+
         result = subprocess.run(
-            ["python", sony_test, "--ip", data.ip, "--action", data.action],
+            ["python", driver_path, "--ip", data.ip, "--action", data.action],
             capture_output=True, text=True
         )
         print("--------------")
@@ -295,15 +294,6 @@ def device_do_action(data: DeviceActionRequest):
 
 
 
-# @app.post("/device/sony-action")
-# async def sony_action(ip: str = Body(...), action: str = Body(...)):
-#     result = subprocess.run(
-#         ["node", "files/Sony_Audio.js", "--ip", ip, "--action", action],
-#         capture_output=True, text=True
-#     )
-#     pprint(result)
-#     print('-----------')
-#     return {"message": result.stdout or "Action sent"}
     
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
