@@ -377,7 +377,7 @@ function Homepage() {
                                       ? d.device_driver
                                           .split(/[\\/]/)
                                           .pop()
-                                          .replace(/\.js$/, "")
+                                          .replace(/\.py$/, "")
                                       : ""}
                                   </TableCell>
                                   <TableCell>
@@ -622,7 +622,7 @@ function Homepage() {
                     ip: currentDevice.ip_address,
                     action: f // e.g., "Power On"
                   };
-                  console.log(body, '====body'); // Log the body before sending
+                  console.log(body, '=============body'); // Log the body before sending
 
                   // Call backend API for dynamic device action
                   const res = await fetch("http://127.0.0.1:8000/device/do-action", {

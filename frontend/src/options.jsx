@@ -6,63 +6,63 @@ export const categoryOptions = [
 ];
 export const driverOptions = [
   // LG
-  "backend/files/LG_Sensor.js",
-  "backend/files/LG_Camera.js",
-  "backend/files/LG_Light.js",
-  "backend/files/LG_Thermostat.js",
-  "backend/files/LG_Display.js",
+  "backend/files/LG_Sensor.py",
+  "backend/files/LG_Camera.py",
+  "backend/files/LG_Light.py",
+  "backend/files/LG_Thermostat.py",
+  "backend/files/LG_Display.py",
 
   // Samsung
-  "backend/files/Samsung_Sensor.js",
-  "backend/files/Samsung_Camera.js",
-  "backend/files/Samsung_Light.js",
-  "backend/files/Samsung_Thermostat.js",
-  "backend/files/Samsung_Display.js",
+  "backend/files/Samsung_Sensor.py",
+  "backend/files/Samsung_Camera.py",
+  "backend/files/Samsung_Light.py",
+  "backend/files/Samsung_Thermostat.py",
+  "backend/files/Samsung_Display.py",
 
   // Sony
-  "backend/files/Sony_Sensor.js",
-  "backend/files/Sony_Camera.js",
-  "backend/files/Sony_Light.js",
-  "backend/files/Sony_Thermostat.js",
-  "backend/files/Sony_Display.js",
+  "backend/files/Sony_Sensor.py",
+  "backend/files/Sony_Camera.py",
+  "backend/files/Sony_Light.py",
+  "backend/files/Sony_Thermostat.py",
+  "backend/files/Sony_Display.py",
 
   // Philips
-  "backend/files/philips_sensor.js",
-  "backend/files/philips_camera.js",
-  "backend/files/philips_light.js",
-  "backend/files/philips_thermostat.js",
-  "backend/files/Philips_Display.js",
+  "backend/files/philips_sensor.py",
+  "backend/files/philips_camera.py",
+  "backend/files/philips_light.py",
+  "backend/files/philips_thermostat.py",
+  "backend/files/Philips_Display.py",
 
   // Panasonic
-  "backend/files/Panasonic_Sensor.js",
-  "backend/files/Panasonic_Camera.js",
-  "backend/files/Panasonic_Light.js",
-  "backend/files/Panasonic_Thermostat.js",
-  "backend/files/Panasonic_Display.js",
+  "backend/files/Panasonic_Sensor.py",
+  "backend/files/Panasonic_Camera.py",
+  "backend/files/Panasonic_Light.py",
+  "backend/files/Panasonic_Thermostat.py",
+  "backend/files/Panasonic_Display.py",
 
   // Honeywell
-  "backend/files/honeywell_sensor.js",
-  "backend/files/honeywell_camera.js",
-  "backend/files/honeywell_thermostat.js",
-  "backend/files/honeywell_switch.js",
-  "backend/files/Honeywell_Display.js",
+  "backend/files/honeywell_sensor.py",
+  "backend/files/honeywell_camera.py",
+  "backend/files/honeywell_thermostat.py",
+  "backend/files/honeywell_switch.py",
+  "backend/files/Honeywell_Display.py",
 
   // Nest (Google)
-  "backend/files/nest_sensor.js",
-  "backend/files/nest_camera.js",
-  "backend/files/nest_thermostat.js",
-  "backend/files/Nest_Display.js",
+  "backend/files/nest_sensor.py",
+  "backend/files/nest_camera.py",
+  "backend/files/nest_thermostat.py",
+  "backend/files/Nest_Display.py",
 
   // Amazon
-  "backend/files/amazon_speaker.js",
-  "backend/files/amazon_display.js",
-  "backend/files/amazon_camera.js",
-  "backend/files/Amazon_Display.js",
+  "backend/files/amazon_speaker.py",
+  "backend/files/amazon_display.py",
+  "backend/files/amazon_camera.py",
+  "backend/files/Amazon_Display.py",
 
   // Apple
-  "backend/files/apple_sensor.js",
-  "backend/files/apple_camera.js",
-  "backend/files/apple_light.js",
-  "backend/files/apple_thermostat.js",
-  "backend/files/Apple_Display.js"
+  "backend/files/apple_sensor.py",
+  "backend/files/apple_camera.py",
+  "backend/files/apple_light.py",
+  "backend/files/apple_thermostat.py",
+  "backend/files/Apple_Display.py"
 ];
