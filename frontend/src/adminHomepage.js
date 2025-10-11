@@ -40,7 +40,6 @@ const modalStyle = {
 
 function Homepage() {
   const [buildings, setBuildings] = useState([]);
-  const [openOptions, setOpenOptions] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openAddBuilding, setOpenAddBuilding] = useState(false);
@@ -63,6 +62,7 @@ function Homepage() {
     device_driver: "",
     functionalities: []
   });
+  const [openOptionsList, setOpenOptionsList] = useState([]); // {id, device}
 
   // Use .env variable (create .env with REACT_APP_API_URL=http://127.0.0.1:8000)
   const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
@@ -72,7 +72,7 @@ function Homepage() {
       .then(res => res.json())
       .then(data => setBuildings(data.buildings || []))
       .catch(() => console.log("Failed to load homepage."));
-  }, []);
+  }, [API_BASE]);
 
   const refreshData = () => {
     fetch(`${API_BASE}/homeadmin`)
@@ -90,11 +90,16 @@ function Homepage() {
       body: JSON.stringify({ device_driver: device.device_driver })
     });
     const data = await res.json();
-    setCurrentDevice({ ...device, functionalities: data.functions || [] });
-    setOpenOptions(true);
+    const entry = {
+      id: `${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+      device: { ...device, functionalities: data.functions || [] }
+    };
+    setOpenOptionsList(prev => [...prev, entry]);
   };
 
-  const handleOptionsClose = () => setOpenOptions(false);
+  const handleOptionsClose = id => {
+    setOpenOptionsList(prev => prev.filter(e => e.id !== id));
+  };
 
   const handleEditOpen = (device, buildingId, roomNumber) => {
     setCurrentDevice({
@@ -639,74 +644,91 @@ function Homepage() {
         </Box>
       </Modal>
 
-      {/* Options Modal */}
-      <Modal
-        open={openOptions}
-        onClose={preventClose(setOpenOptions)}
-        disableAutoFocus
-        disableEnforceFocus
-        disableRestoreFocus
-        BackdropProps={{ invisible: true }}
-      >
-        <Box sx={{ ...modalStyle, minWidth: 350, maxWidth: 400, zIndex: 1430 }}>
-          <Typography
-            variant="h5"
-            align="center"
-            gutterBottom
-            sx={{ fontWeight: 600 }}
+      {/* Options Modals - render one Modal per open entry */}
+      {openOptionsList.map((entry, idx) => (
+        <Modal
+          key={entry.id}
+          open={true}
+          onClose={(event, reason) => {
+            if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+            handleOptionsClose(entry.id);
+          }}
+          hideBackdrop
+          disableAutoFocus
+          disableEnforceFocus
+          disableRestoreFocus
+          BackdropProps={{ sx: { pointerEvents: "none" } }}
+          // allow clicks to pass through outside the Box so other Controls remain clickable
+          style={{ pointerEvents: "none" }}
+        >
+          {/* position each modal slightly offset so they don't fully overlap */}
+          <Box
+            sx={{
+              ...modalStyle,
+              minWidth: 350,
+              maxWidth: 400,
+              zIndex: 1430 + idx,
+              pointerEvents: "auto",
+              // offset stacked modals slightly
+              top: `calc(50% + ${idx * 24}px)`,
+              left: `calc(50% + ${idx * 24}px)`,
+              transform: "translate(-50%, -50%)"
+            }}
           >
-            {currentDevice?.device_brand} - Actions
-          </Typography>
-          <Stack spacing={2} sx={{ mb: 2 }}>
-            {currentDevice?.functionalities?.map((f, idx) => (
-              <Button
-                key={idx}
-                fullWidth
-                variant="contained"
-                color="primary"
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 500,
-                  borderRadius: 2,
-                  boxShadow: 1,
-                  py: 1.2,
-                  background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)"
-                }}
-                onClick={async () => {
-                  // Prepare the body data for the new dynamic endpoint
-                  const body = {
-                    device_driver: currentDevice.device_driver, // JS file path
-                    ip: currentDevice.ip_address,
-                    action: f // e.g., "Power On"
-                  };
-                  console.log(body, '=============body'); // Log the body before sending
-
-                  // Call backend API for dynamic device action
-                  const res = await fetch(`${API_BASE}/device/do-action`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body)
-                  });
-                  const data = await res.json();
-                  console.log(data, '============data.message'); // This prints to browser console
-                  // alert(data.message); // This shows a popup
-                }}
-              >
-                {f}
-              </Button>
-            ))}
-          </Stack>
-          <Button
-            onClick={handleOptionsClose}
-            variant="outlined"
-            color="secondary"
-            fullWidth
-            sx={{ mt: 1, borderRadius: 2, fontWeight: 500 }}
-          >
-            Close
-          </Button>
-        </Box>
-      </Modal>
+            <Typography
+              variant="h5"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 600 }}
+            >
+              {entry.device?.device_brand} - Actions
+            </Typography>
+            <Stack spacing={2} sx={{ mb: 2 }}>
+              {entry.device?.functionalities?.map((f, i) => (
+                <Button
+                  key={i}
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    py: 1.2,
+                    background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)"
+                  }}
+                  onClick={async () => {
+                    const body = {
+                      device_driver: entry.device.device_driver,
+                      ip: entry.device.ip_address,
+                      action: f
+                    };
+                    const res = await fetch(`${API_BASE}/device/do-action`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(body)
+                    });
+                    const data = await res.json();
+                    console.log(data);
+                  }}
+                >
+                  {f}
+                </Button>
+              ))}
+            </Stack>
+            <Button
+              onClick={() => handleOptionsClose(entry.id)}
+              variant="outlined"
+              color="secondary"
+              fullWidth
+              sx={{ mt: 1, borderRadius: 2, fontWeight: 500 }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
+      ))}
 
       {/* Edit Modal */}
       <Modal

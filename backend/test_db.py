@@ -18,3 +18,12 @@ try:
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
+
+
+# show dbs
+# use AvDB
+
+# show collections
+# db.Building.find().limit(5).pretty()
+# db.admin.findOne({ username: "admin" })
+# db.Building.insertOne({ name: "Test" })
