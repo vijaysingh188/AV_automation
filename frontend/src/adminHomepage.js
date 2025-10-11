@@ -1,5 +1,5 @@
 import Stack from "@mui/material/Stack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -40,7 +40,6 @@ const modalStyle = {
 
 function Homepage() {
   const [buildings, setBuildings] = useState([]);
-  const [openOptions, setOpenOptions] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [openAdd, setOpenAdd] = useState(false);
   const [openAddBuilding, setOpenAddBuilding] = useState(false);
@@ -63,35 +62,117 @@ function Homepage() {
     device_driver: "",
     functionalities: []
   });
+  const [openOptionsList, setOpenOptionsList] = useState([]); // {id, device, position}
 
+  // base API url from .env (REACT_APP_API_URL) or fallback
+  const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
+  // simple IPv4 validator used in add/edit device forms
+  const ipRegex = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
+
+  // load/refresh buildings list from backend
+  const refreshData = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/homeadmin`);
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      setBuildings(data.buildings || []);
+    } catch (err) {
+      console.error("refreshData error:", err);
+    }
+  }, [API_BASE]);
+
+  // initial load
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/homeadmin")
-      .then(res => res.json())
-      .then(data => setBuildings(data.buildings || []))
-      .catch(() => console.log("Failed to load homepage."));
-  }, []);
+    refreshData();
+  }, [refreshData]);
 
-  const refreshData = () => {
-    fetch("http://127.0.0.1:8000/homeadmin")
-      .then(res => res.json())
-      .then(data => setBuildings(data.buildings || []));
+  // ref to track current drag operation
+  const dragRef = useRef({
+    draggingId: null,
+    startX: 0,
+    startY: 0,
+    origX: 0,
+    origY: 0
+  });
+
+  // helper to start a drag
+  const startDrag = (id, e) => {
+    e.preventDefault();
+    const isTouch = e.type === "touchstart";
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+    setOpenOptionsList(prev => {
+      const entry = prev.find(x => x.id === id);
+      if (!entry) return prev;
+      dragRef.current = {
+        draggingId: id,
+        startX: clientX,
+        startY: clientY,
+        origX: entry.position.x,
+        origY: entry.position.y
+      };
+      return prev;
+    });
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", endDrag);
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", endDrag);
   };
 
-  const ipRegex =
-    /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
+  const onMove = e => {
+    if (!dragRef.current.draggingId) return;
+    e.preventDefault();
+    const isTouch = e.type === "touchmove";
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    const dx = clientX - dragRef.current.startX;
+    const dy = clientY - dragRef.current.startY;
+
+    setOpenOptionsList(prev =>
+      prev.map(entry =>
+        entry.id === dragRef.current.draggingId
+          ? { ...entry, position: { x: dragRef.current.origX + dx, y: dragRef.current.origY + dy } }
+          : entry
+      )
+    );
+  };
+
+  const endDrag = () => {
+    dragRef.current.draggingId = null;
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", endDrag);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", endDrag);
+  };
 
   const handleOptionsOpen = async device => {
-    const res = await fetch("http://localhost:8000/device/functions", {
+    const res = await fetch(`${API_BASE}/device/functions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ device_driver: device.device_driver })
     });
     const data = await res.json();
-    setCurrentDevice({ ...device, functionalities: data.functions || [] });
-    setOpenOptions(true);
+
+    setOpenOptionsList(prev => {
+      const idx = prev.length;
+      // base position: center offset by count so they don't stack exactly
+      const startX = Math.max(20, window.innerWidth / 2 + idx * 20 - 200);
+      const startY = Math.max(20, window.innerHeight / 2 + idx * 20 - 120);
+      const entry = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        device: { ...device, functionalities: data.functions || [] },
+        position: { x: startX, y: startY }
+      };
+      return [...prev, entry];
+    });
   };
 
-  const handleOptionsClose = () => setOpenOptions(false);
+  const handleOptionsClose = id => {
+    setOpenOptionsList(prev => prev.filter(e => e.id !== id));
+  };
 
   const handleEditOpen = (device, buildingId, roomNumber) => {
     setCurrentDevice({
@@ -116,7 +197,8 @@ function Homepage() {
       return;
     }
     try {
-      const response = await fetch("http://127.0.0.1:8000/device/edit", {
+      
+      const response = await fetch(`${API_BASE}/device/edit`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +231,7 @@ function Homepage() {
     if (!window.confirm(`Delete ${deviceName}?`)) return;
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/device/delete?building_id=${buildingId}&room_name=${roomName}&device_brand=${deviceName}`,
+        `${API_BASE}/device/delete?building_id=${buildingId}&room_name=${roomName}&device_brand=${deviceName}`,
         { method: "DELETE" }
       );
       if (response.ok) {
@@ -166,7 +248,7 @@ function Homepage() {
   };
 
   const addDevice = async (building_id, room_number, device) => {
-    await fetch("http://localhost:8000/device/add", {
+    await fetch(`${API_BASE}/device/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -188,7 +270,7 @@ function Homepage() {
       alert("Building name required");
       return;
     }
-    await fetch("http://localhost:8000/add-building", {
+    await fetch(`${API_BASE}/add-building`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ building_name: newBuildingName })
@@ -205,7 +287,7 @@ function Homepage() {
       alert("Room name required");
       return;
     }
-    await fetch("http://localhost:8000/add-room", {
+    await fetch(`${API_BASE}/add-room`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -635,74 +717,99 @@ function Homepage() {
         </Box>
       </Modal>
 
-      {/* Options Modal */}
-      <Modal
-        open={openOptions}
-        onClose={preventClose(setOpenOptions)}
-        disableAutoFocus
-        disableEnforceFocus
-        disableRestoreFocus
-        BackdropProps={{ invisible: true }}
-      >
-        <Box sx={{ ...modalStyle, minWidth: 350, maxWidth: 400, zIndex: 1430 }}>
-          <Typography
-            variant="h5"
-            align="center"
-            gutterBottom
-            sx={{ fontWeight: 600 }}
+      {/* Options Modals - render one Modal per open entry */}
+      {openOptionsList.map((entry, idx) => (
+        <Modal
+          key={entry.id}
+          open={true}
+          onClose={(event, reason) => {
+            if (reason === "backdropClick" || reason === "escapeKeyDown") return;
+            handleOptionsClose(entry.id);
+          }}
+          hideBackdrop
+          disableAutoFocus
+          disableEnforceFocus
+          disableRestoreFocus
+          BackdropProps={{ sx: { pointerEvents: "none" } }}
+          style={{ pointerEvents: "none" }}
+        >
+          {/* make modal positioned by entry.position and draggable via handlers */}
+          <Box
+            onMouseDown={e => {
+              // allow dragging only when clicking the header area - guard by class
+              if (e.target.closest && e.target.closest(".drag-handle")) startDrag(entry.id, e);
+            }}
+            onTouchStart={e => {
+              if (e.target.closest && e.target.closest(".drag-handle")) startDrag(entry.id, e);
+            }}
+            sx={{
+              ...modalStyle,
+              minWidth: 350,
+              maxWidth: 400,
+              zIndex: 1430 + idx,
+              pointerEvents: "auto",
+              // use fixed positioning with explicit coordinates from state
+              position: "fixed",
+              left: `${entry.position?.x ?? 100}px`,
+              top: `${entry.position?.y ?? 100}px`,
+              transform: "none"
+            }}
           >
-            {currentDevice?.device_brand} - Actions
-          </Typography>
-          <Stack spacing={2} sx={{ mb: 2 }}>
-            {currentDevice?.functionalities?.map((f, idx) => (
-              <Button
-                key={idx}
-                fullWidth
-                variant="contained"
-                color="primary"
-                sx={{
-                  textTransform: "none",
-                  fontWeight: 500,
-                  borderRadius: 2,
-                  boxShadow: 1,
-                  py: 1.2,
-                  background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)"
-                }}
-                onClick={async () => {
-                  // Prepare the body data for the new dynamic endpoint
-                  const body = {
-                    device_driver: currentDevice.device_driver, // JS file path
-                    ip: currentDevice.ip_address,
-                    action: f // e.g., "Power On"
-                  };
-                  console.log(body, '=============body'); // Log the body before sending
-
-                  // Call backend API for dynamic device action
-                  const res = await fetch("http://127.0.0.1:8000/device/do-action", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(body)
-                  });
-                  const data = await res.json();
-                  console.log(data, '============data.message'); // This prints to browser console
-                  // alert(data.message); // This shows a popup
-                }}
-              >
-                {f}
-              </Button>
-            ))}
-          </Stack>
-          <Button
-            onClick={handleOptionsClose}
-            variant="outlined"
-            color="secondary"
-            fullWidth
-            sx={{ mt: 1, borderRadius: 2, fontWeight: 500 }}
-          >
-            Close
-          </Button>
-        </Box>
-      </Modal>
+            <Typography
+              className="drag-handle"
+              variant="h5"
+              align="center"
+              gutterBottom
+              sx={{ fontWeight: 600, cursor: "move", userSelect: "none" }}
+            >
+              {entry.device?.device_brand} - Actions
+            </Typography>
+            <Stack spacing={2} sx={{ mb: 2 }}>
+              {entry.device?.functionalities?.map((f, i) => (
+                <Button
+                  key={i}
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 500,
+                    borderRadius: 2,
+                    boxShadow: 1,
+                    py: 1.2,
+                    background: "linear-gradient(90deg, #1976d2 60%, #42a5f5 100%)"
+                  }}
+                  onClick={async () => {
+                    const body = {
+                      device_driver: entry.device.device_driver,
+                      ip: entry.device.ip_address,
+                      action: f
+                    };
+                    const res = await fetch(`${API_BASE}/device/do-action`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(body)
+                    });
+                    const data = await res.json();
+                    console.log(data);
+                  }}
+                >
+                  {f}
+                </Button>
+              ))}
+            </Stack>
+            <Button
+              onClick={() => handleOptionsClose(entry.id)}
+              variant="outlined"
+              color="secondary"
+              fullWidth
+              sx={{ mt: 1, borderRadius: 2, fontWeight: 500 }}
+            >
+              Close
+            </Button>
+          </Box>
+        </Modal>
+      ))}
 
       {/* Edit Modal */}
       <Modal
