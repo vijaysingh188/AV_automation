@@ -3,13 +3,40 @@ from pydantic import BaseModel, Field, ValidationError
 from typing import List
 import options  # Assuming options.py is in the same directory
 from main import Building, Room, Device
-MONGO_URI = "mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-# MONGO_URI = "mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/AvDB?retryWrites=true&w=majority&appName=Cluster0"
-client = MongoClient(MONGO_URI)
-# client = MongoClient("mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# load .env from project root if available
+import os
+from pathlib import Path
+from urllib.parse import quote_plus
 
-# client = MongoClient("mongodb://localhost:27017/")
+env_path = Path(__file__).resolve().parents[1] / ".env"
+try:
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=env_path)
+except Exception:
+    pass
+
+# Priority:
+# 1) use full MONGO_URI if provided via environment
+# 2) otherwise build URI from individual parts
+full_uri = os.getenv("MONGO_URI")
+if full_uri and full_uri.strip():
+    MONGO_URI = full_uri.strip()
+else:
+    user = os.getenv("MONGO_USER", "").strip()
+    pwd = os.getenv("MONGO_PASS", "").strip()
+    host = os.getenv("MONGO_HOST", "cluster0.s40plbc.mongodb.net").strip()
+    db_name = os.getenv("MONGO_DB", "AvDB").strip()
+    options_str = os.getenv("MONGO_OPTIONS", "?retryWrites=true&w=majority&appName=Cluster0").strip()
+
+    if user:
+        pwd_enc = quote_plus(pwd)
+        MONGO_URI = f"mongodb+srv://{user}:{pwd_enc}@{host}/{db_name}{options_str}"
+    else:
+        MONGO_URI = f"mongodb+srv://{host}/{db_name}{options_str}"
+
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)
+
 db = client["AvDB"]
 building_collection = db["Building"]
 
@@ -32,7 +59,6 @@ data = {
                     "device_category": "Camera",
                     "device_brand": "Samsung",
                     "device_driver" : "backend/files/Samsung_Camera.js",
-
                     "functionalities": []
                 }
             ]
