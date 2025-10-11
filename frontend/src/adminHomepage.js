@@ -1,5 +1,5 @@
 import Stack from "@mui/material/Stack";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -62,26 +62,91 @@ function Homepage() {
     device_driver: "",
     functionalities: []
   });
-  const [openOptionsList, setOpenOptionsList] = useState([]); // {id, device}
+  const [openOptionsList, setOpenOptionsList] = useState([]); // {id, device, position}
 
-  // Use .env variable (create .env with REACT_APP_API_URL=http://127.0.0.1:8000)
+  // base API url from .env (REACT_APP_API_URL) or fallback
   const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
-  console.log('API_BASE:', API_BASE); // Debug log to check the API base URL
-  useEffect(() => {
-    fetch(`${API_BASE}/homeadmin`)
-      .then(res => res.json())
-      .then(data => setBuildings(data.buildings || []))
-      .catch(() => console.log("Failed to load homepage."));
+
+  // simple IPv4 validator used in add/edit device forms
+  const ipRegex = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
+
+  // load/refresh buildings list from backend
+  const refreshData = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/homeadmin`);
+      if (!res.ok) throw new Error("Failed to load");
+      const data = await res.json();
+      setBuildings(data.buildings || []);
+    } catch (err) {
+      console.error("refreshData error:", err);
+    }
   }, [API_BASE]);
 
-  const refreshData = () => {
-    fetch(`${API_BASE}/homeadmin`)
-      .then(res => res.json())
-      .then(data => setBuildings(data.buildings || []));
+  // initial load
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
+
+  // ref to track current drag operation
+  const dragRef = useRef({
+    draggingId: null,
+    startX: 0,
+    startY: 0,
+    origX: 0,
+    origY: 0
+  });
+
+  // helper to start a drag
+  const startDrag = (id, e) => {
+    e.preventDefault();
+    const isTouch = e.type === "touchstart";
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+
+    setOpenOptionsList(prev => {
+      const entry = prev.find(x => x.id === id);
+      if (!entry) return prev;
+      dragRef.current = {
+        draggingId: id,
+        startX: clientX,
+        startY: clientY,
+        origX: entry.position.x,
+        origY: entry.position.y
+      };
+      return prev;
+    });
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", endDrag);
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", endDrag);
   };
 
-  const ipRegex =
-    /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
+  const onMove = e => {
+    if (!dragRef.current.draggingId) return;
+    e.preventDefault();
+    const isTouch = e.type === "touchmove";
+    const clientX = isTouch ? e.touches[0].clientX : e.clientX;
+    const clientY = isTouch ? e.touches[0].clientY : e.clientY;
+    const dx = clientX - dragRef.current.startX;
+    const dy = clientY - dragRef.current.startY;
+
+    setOpenOptionsList(prev =>
+      prev.map(entry =>
+        entry.id === dragRef.current.draggingId
+          ? { ...entry, position: { x: dragRef.current.origX + dx, y: dragRef.current.origY + dy } }
+          : entry
+      )
+    );
+  };
+
+  const endDrag = () => {
+    dragRef.current.draggingId = null;
+    document.removeEventListener("mousemove", onMove);
+    document.removeEventListener("mouseup", endDrag);
+    document.removeEventListener("touchmove", onMove);
+    document.removeEventListener("touchend", endDrag);
+  };
 
   const handleOptionsOpen = async device => {
     const res = await fetch(`${API_BASE}/device/functions`, {
@@ -90,11 +155,19 @@ function Homepage() {
       body: JSON.stringify({ device_driver: device.device_driver })
     });
     const data = await res.json();
-    const entry = {
-      id: `${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
-      device: { ...device, functionalities: data.functions || [] }
-    };
-    setOpenOptionsList(prev => [...prev, entry]);
+
+    setOpenOptionsList(prev => {
+      const idx = prev.length;
+      // base position: center offset by count so they don't stack exactly
+      const startX = Math.max(20, window.innerWidth / 2 + idx * 20 - 200);
+      const startY = Math.max(20, window.innerHeight / 2 + idx * 20 - 120);
+      const entry = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        device: { ...device, functionalities: data.functions || [] },
+        position: { x: startX, y: startY }
+      };
+      return [...prev, entry];
+    });
   };
 
   const handleOptionsClose = id => {
@@ -658,28 +731,36 @@ function Homepage() {
           disableEnforceFocus
           disableRestoreFocus
           BackdropProps={{ sx: { pointerEvents: "none" } }}
-          // allow clicks to pass through outside the Box so other Controls remain clickable
           style={{ pointerEvents: "none" }}
         >
-          {/* position each modal slightly offset so they don't fully overlap */}
+          {/* make modal positioned by entry.position and draggable via handlers */}
           <Box
+            onMouseDown={e => {
+              // allow dragging only when clicking the header area - guard by class
+              if (e.target.closest && e.target.closest(".drag-handle")) startDrag(entry.id, e);
+            }}
+            onTouchStart={e => {
+              if (e.target.closest && e.target.closest(".drag-handle")) startDrag(entry.id, e);
+            }}
             sx={{
               ...modalStyle,
               minWidth: 350,
               maxWidth: 400,
               zIndex: 1430 + idx,
               pointerEvents: "auto",
-              // offset stacked modals slightly
-              top: `calc(50% + ${idx * 24}px)`,
-              left: `calc(50% + ${idx * 24}px)`,
-              transform: "translate(-50%, -50%)"
+              // use fixed positioning with explicit coordinates from state
+              position: "fixed",
+              left: `${entry.position?.x ?? 100}px`,
+              top: `${entry.position?.y ?? 100}px`,
+              transform: "none"
             }}
           >
             <Typography
+              className="drag-handle"
               variant="h5"
               align="center"
               gutterBottom
-              sx={{ fontWeight: 600 }}
+              sx={{ fontWeight: 600, cursor: "move", userSelect: "none" }}
             >
               {entry.device?.device_brand} - Actions
             </Typography>
