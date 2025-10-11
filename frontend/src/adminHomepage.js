@@ -64,15 +64,18 @@ function Homepage() {
     functionalities: []
   });
 
+  // Use .env variable (create .env with REACT_APP_API_URL=http://127.0.0.1:8000)
+  const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+  console.log('API_BASE:', API_BASE); // Debug log to check the API base URL
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/homeadmin")
+    fetch(`${API_BASE}/homeadmin`)
       .then(res => res.json())
       .then(data => setBuildings(data.buildings || []))
       .catch(() => console.log("Failed to load homepage."));
   }, []);
 
   const refreshData = () => {
-    fetch("http://127.0.0.1:8000/homeadmin")
+    fetch(`${API_BASE}/homeadmin`)
       .then(res => res.json())
       .then(data => setBuildings(data.buildings || []));
   };
@@ -81,7 +84,7 @@ function Homepage() {
     /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
 
   const handleOptionsOpen = async device => {
-    const res = await fetch("http://localhost:8000/device/functions", {
+    const res = await fetch(`${API_BASE}/device/functions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ device_driver: device.device_driver })
@@ -116,7 +119,8 @@ function Homepage() {
       return;
     }
     try {
-      const response = await fetch("http://127.0.0.1:8000/device/edit", {
+      
+      const response = await fetch(`${API_BASE}/device/edit`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +153,7 @@ function Homepage() {
     if (!window.confirm(`Delete ${deviceName}?`)) return;
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/device/delete?building_id=${buildingId}&room_name=${roomName}&device_brand=${deviceName}`,
+        `${API_BASE}/device/delete?building_id=${buildingId}&room_name=${roomName}&device_brand=${deviceName}`,
         { method: "DELETE" }
       );
       if (response.ok) {
@@ -166,7 +170,7 @@ function Homepage() {
   };
 
   const addDevice = async (building_id, room_number, device) => {
-    await fetch("http://localhost:8000/device/add", {
+    await fetch(`${API_BASE}/device/add`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -188,7 +192,7 @@ function Homepage() {
       alert("Building name required");
       return;
     }
-    await fetch("http://localhost:8000/add-building", {
+    await fetch(`${API_BASE}/add-building`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ building_name: newBuildingName })
@@ -205,7 +209,7 @@ function Homepage() {
       alert("Room name required");
       return;
     }
-    await fetch("http://localhost:8000/add-room", {
+    await fetch(`${API_BASE}/add-room`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -678,7 +682,7 @@ function Homepage() {
                   console.log(body, '=============body'); // Log the body before sending
 
                   // Call backend API for dynamic device action
-                  const res = await fetch("http://127.0.0.1:8000/device/do-action", {
+                  const res = await fetch(`${API_BASE}/device/do-action`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(body)
