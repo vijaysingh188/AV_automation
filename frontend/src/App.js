@@ -4,6 +4,9 @@ import Homepage from "./Homepage";
 import AdminHomepage from "./adminHomepage";
 import './App.css';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+
+
 function LoginCard() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +20,7 @@ function LoginCard() {
     formData.append("username", username);
     formData.append("password", password);
 
-    const response = await fetch("http://127.0.0.1:8000/login", {
+    const response = await fetch(`${API_BASE}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
