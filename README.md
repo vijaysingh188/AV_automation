@@ -9,7 +9,7 @@ mongodb+srv://avautomation01_db_user:OW72dD6yUynHHCzo@cluster0.s40plbc.mongodb.n
 
 
 Aws Setup:
-ssh -i AvkeyAWS.pem ubuntu@52.66.179.118 
+ssh -i AvkeyAWS.pem ubuntu@13.201.79.241
 
 sudo apt update
 sudo apt install -y docker.io docker-compose
