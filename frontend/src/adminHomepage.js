@@ -65,8 +65,8 @@ function Homepage() {
   const [openOptionsList, setOpenOptionsList] = useState([]); // {id, device, position}
 
   // base API url from .env (REACT_APP_API_URL) or fallback
-  const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
-
+  // const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+  const API_BASE = "http://13.201.79.241:8000";
   // simple IPv4 validator used in add/edit device forms
   const ipRegex = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
 

@@ -2,14 +2,10 @@ import sys
 import json
 import argparse
 import asyncio
-import requests
-import urllib3
+import logging
 
-# Disable insecure request warnings for self-signed certs (used when verify=False)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# Default PSK
-DEFAULT_PSK = "1234"
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # List available actions
 AVAILABLE_ACTIONS = [
@@ -26,27 +22,41 @@ if '--list-functions' in sys.argv:
     print(json.dumps(AVAILABLE_ACTIONS))
     sys.exit(0)
 
+import requests
+import urllib3
+
+# Disable insecure request warnings for self-signed certs (used when verify=False)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Default PSK
+DEFAULT_PSK = "1234"
+
+
 # Argument parsing
 parser = argparse.ArgumentParser(description="Sony TV Control Script")
-parser.add_argument('--ip', required=True, help='IP address of the TV')
+parser.add_argument('--ip', required=False, help='IP address of the TV (host or host:port)')
+parser.add_argument('--device-url', required=False, help='Full device URL (e.g. http://1.2.3.4:18080)')
 parser.add_argument('--action', required=True, choices=AVAILABLE_ACTIONS, help='Action to perform')
 parser.add_argument('--psk', default=DEFAULT_PSK, help='Pre-Shared Key for authentication')
 args = parser.parse_args()
 
 # Core volume control function
-def set_audio_volume(ip, volume_change, psk=DEFAULT_PSK):
+def set_audio_volume(ip=None, volume_change="+1", psk=DEFAULT_PSK, device_url=None):
     """
     Send a setAudioVolume RPC to the Sony device.
     volume_change should be a string like "+1" or "-1".
     """
-    url = f"http://{ip}/sony/audio"
+    if device_url:
+        url = device_url.rstrip("/") + "/sony/audio"
+    else:
+        url = f"http://{ip}/sony/audio"
     headers = {
         "Accept": "*/*",
         "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
         "Connection": "keep-alive",
         "Content-Type": "text/plain;charset=UTF-8",
         "Origin": "null",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/139.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         "X-Auth-PSK": str(psk)
     }
     payload = {
@@ -62,16 +72,17 @@ def set_audio_volume(ip, volume_change, psk=DEFAULT_PSK):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, verify=False, timeout=5)
-        # If the device returns JSON, parse it; otherwise return raw text
+        response = requests.post(url, headers=headers, json=payload, verify=False, timeout=10)
         try:
             data = response.json()
         except ValueError:
             data = {"status_code": response.status_code, "text": response.text}
         print("API response:", data)
+        logger.info(data) 
         return data
     except requests.exceptions.RequestException as e:
         print("HTTP Error:", e)
+        logger.info(str(e)) 
         return {"error": str(e)}
 
 # Async wrappers that call the functional implementation
@@ -123,10 +134,12 @@ async def power_on(ip, psk=DEFAULT_PSK):
         result = await asyncio.to_thread(_send_rpc, ip, endpoint, method, params, psk)
         if result and ("error" not in result) and result.get("status_code", 0) in (200, 201):
             print("Power On response:", result)
+            logger.info(result) 
             return result
         errors.append({ "endpoint": endpoint, "method": method, "result": result })
     # fallback: no successful attempt
     print("Power On failed attempts:", errors)
+    logger.info(errors) 
     return {"error": "Power On failed", "details": errors}
 
 async def power_off(ip, psk=DEFAULT_PSK):
@@ -144,15 +157,18 @@ async def power_off(ip, psk=DEFAULT_PSK):
         result = await asyncio.to_thread(_send_rpc, ip, endpoint, method, params, psk)
         if result and ("error" not in result) and result.get("status_code", 0) in (200, 201):
             print("Power Off response:", result)
+            logger.info(result) 
             return result
         errors.append({ "endpoint": endpoint, "method": method, "result": result })
     print("Power Off failed attempts:", errors)
+    logger.info(errors) 
     return {"error": "Power Off failed", "details": errors}
 
 # Power / status / reset implemented as safe no-throw handlers.
 # If you know the exact endpoints for these on your Sony device, replace the body with real API calls.
 def _safe_noop(message, ip):
     print(message)
+    logger.info(message) 
     return {"result": message, "ip": ip}
 
 async def status(ip, psk=DEFAULT_PSK):
@@ -173,40 +189,49 @@ async def main():
     try:
         if action == "Power On":
             print(f"Power On sent to {ip}")
+            logger.info(ip) 
             result = await power_on(ip, psk)
 
         elif action == "Power Off":
+
             print(f"Power Off sent to {ip}")
+            logger.info(ip) 
             result = await power_off(ip, psk)
 
         elif action == "Volume Up":
             result = await volume_up(ip, psk)
             print(f"Volume Up sent to {ip}")
+            logger.info(ip) 
 
         elif action == "Volume Down":
             result = await volume_down(ip, psk)
             print(f"Volume Down sent to {ip}")
+            logger.info(ip) 
 
         elif action == "Status":
             result = await status(ip, psk)
             print(f"Status fetched for {ip}")
+            logger.info(ip) 
 
         elif action == "Reset":
             result = await reset(ip, psk)
             print(f"Reset sent to {ip}")
+            logger.info(ip) 
 
         else:
-            print("Unknown action")
+            # logger.info("Unknown action:")
             result = {"error": "Unknown action"}
 
     except Exception as e:
         # Catch unexpected errors to avoid non-zero exit
         print("Error during action:", str(e))
+        logger.info(str(e)) 
         result = {"error": str(e)}
 
     # Print final result so caller (backend) can read stdout
     try:
         print("RESULT:", json.dumps(result))
+        logger.info(result) 
     except Exception:
         print("RESULT:", result)
 

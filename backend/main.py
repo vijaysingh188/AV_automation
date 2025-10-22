@@ -13,7 +13,11 @@ from bson import ObjectId
 from database import building_collection, collection  # Import collections
 from options import device_brand, device_category, device_driver
 import subprocess
-from pprint import pprint
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -219,20 +223,32 @@ def login(username: str = Form(...), password: str = Form(...)):
 def get_device_functions(data: DeviceDriverRequest):
     # Use absolute path for the JS file
     driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
-    print(driver_path, '======================driver_path')
+    logger.info(driver_path)
     if not os.path.isfile(driver_path):
         return {"functions": [], "error": f"JS file not found: {driver_path}"}
     try:
-        result = subprocess.run(
-            ["python", driver_path, "--list-functions"],
-            capture_output=True, text=True, check=True
-        )
-        # Parse the output as JSON
-        functions = json.loads(result.stdout.strip())
-        print(functions, '-------------------functions')
-        return {"functions": functions}
+        # choose interpreter based on extension
+        cmd = ["node", driver_path, "--list-functions"] if driver_path.lower().endswith(".js") else ["python", driver_path, "--list-functions"]
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        logger.info("Command: %s", " ".join(cmd))
+        logger.info("Returncode: %s", result.returncode)
+        logger.info("Stdout: %s", result.stdout.strip())
+        logger.info("Stderr: %s", result.stderr.strip())
+
+        # try parse stdout even if returncode != 0 (some drivers print functions but still exit non-zero)
+        out = result.stdout.strip()
+        if out:
+            try:
+                functions = json.loads(out)
+                return {"functions": functions}
+            except Exception as e:
+                logger.warning("Failed to parse functions JSON: %s", e)
+                return {"functions": [], "error": "Invalid JSON from driver", "raw": out, "stderr": result.stderr.strip()}
+
+        # no stdout -> error
+        return {"functions": [], "error": result.stderr.strip() or f"Driver exited with code {result.returncode}"}
     except Exception as e:
-        print(e, '==================e')
+        logger.info(e)
         return {"functions": [], "error": str(e)}
 
 @app.post("/add-room")
@@ -253,9 +269,6 @@ async def sony_action(ip: str = Body(...), action: str = Body(...)):
         ["node", "files/Sony_Audio.js", "--ip", ip, "--action", action],
         capture_output=True, text=True
     )
-    print('-----------')
-    pprint(result)
-    print('-----------')
     return {"message": result.stdout or "Action sent"}
 
 
@@ -263,31 +276,36 @@ async def sony_action(ip: str = Body(...), action: str = Body(...)):
     
 @app.post("/device/do-action")
 def device_do_action(data: DeviceActionRequest):
-    print(data, '==================data')
+    logger.info(data)
     driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
 
-    print(driver_path, '=======driver_path')
+    logger.info(driver_path)
 
-    # Read and print the first 5 lines of the python driver path
+    # Read and logger.info the first 5 lines of the python driver path
     # if os.path.isfile(driver_path):
     #     with open(driver_path, 'r', encoding='utf-8') as f:
     #         for i in range(5):
     #             line = f.readline()
     #             if not line:
     #                 break
-    #             print(f"JS file line {i+1}: {line.strip()}")
+    #             logger.info(f"JS file line {i+1}: {line.strip()}")
     # else:
     #     return {"error": f"----------JS file not found: {driver_path}"}
 
     try:
+        # if data.ip looks like host:port or startswith http, pass as --device-url
+        if data.ip.startswith("http://") or data.ip.startswith("https://") or ":" in data.ip:
+            cmd = ["python", driver_path, "--device-url", data.ip if data.ip.startswith("http") else f"http://{data.ip}", "--action", data.action]
+        else:
+            cmd = ["python", driver_path, "--ip", data.ip, "--action", data.action]
 
         result = subprocess.run(
-            ["python", driver_path, "--ip", data.ip, "--action", data.action],
+            cmd,
             capture_output=True, text=True
         )
-        print("--------------")
-        pprint(result)
-        print("--------------")
+        
+        logger.info(result)
+       
         return {"message": result.stdout.strip() or "No output from device script."}
     except Exception as e:
         return {"error": str(e)}
@@ -297,3 +315,4 @@ def device_do_action(data: DeviceActionRequest):
     
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
+

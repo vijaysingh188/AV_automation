@@ -4,7 +4,7 @@ import Homepage from "./Homepage";
 import AdminHomepage from "./adminHomepage";
 import './App.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:8000";
+const API_BASE = "http://13.201.79.241:8000";
 
 
 function LoginCard() {
