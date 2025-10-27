@@ -14,11 +14,14 @@ from database import building_collection, collection  # Import collections
 from options import device_brand, device_category, device_driver
 import subprocess
 
-import logging
+from fastapi import WebSocket
+import asyncio
 
+import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+connected_gateway = None
 app = FastAPI()
 
 
@@ -263,55 +266,65 @@ def add_room(data: RoomAddRequest):
 
 
 
-@app.post("/device/sony-action")
-async def sony_action(ip: str = Body(...), action: str = Body(...)):
-    result = subprocess.run(
-        ["node", "files/Sony_Audio.js", "--ip", ip, "--action", action],
-        capture_output=True, text=True
-    )
-    return {"message": result.stdout or "Action sent"}
-
-
 
     
-@app.post("/device/do-action")
-def device_do_action(data: DeviceActionRequest):
-    logger.info(data)
-    driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
+# @app.post("/device/do-action")
+# def device_do_action(data: DeviceActionRequest):
+#     logger.info(data)
+#     driver_path = os.path.join(os.path.dirname(__file__), "files", os.path.basename(data.device_driver))
 
-    logger.info(driver_path)
+#     logger.info(driver_path)
 
-    # Read and logger.info the first 5 lines of the python driver path
-    # if os.path.isfile(driver_path):
-    #     with open(driver_path, 'r', encoding='utf-8') as f:
-    #         for i in range(5):
-    #             line = f.readline()
-    #             if not line:
-    #                 break
-    #             logger.info(f"JS file line {i+1}: {line.strip()}")
-    # else:
-    #     return {"error": f"----------JS file not found: {driver_path}"}
+#     try:
+#         # if data.ip looks like host:port or startswith http, pass as --device-url
+#         if data.ip.startswith("http://") or data.ip.startswith("https://") or ":" in data.ip:
+#             cmd = ["python", driver_path, "--device-url", data.ip if data.ip.startswith("http") else f"http://{data.ip}", "--action", data.action]
+#         else:
+#             cmd = ["python", driver_path, "--ip", data.ip, "--action", data.action]
 
-    try:
-        # if data.ip looks like host:port or startswith http, pass as --device-url
-        if data.ip.startswith("http://") or data.ip.startswith("https://") or ":" in data.ip:
-            cmd = ["python", driver_path, "--device-url", data.ip if data.ip.startswith("http") else f"http://{data.ip}", "--action", data.action]
-        else:
-            cmd = ["python", driver_path, "--ip", data.ip, "--action", data.action]
-
-        result = subprocess.run(
-            cmd,
-            capture_output=True, text=True
-        )
+#         result = subprocess.run(
+#             cmd,
+#             capture_output=True, text=True
+#         )
         
-        logger.info(result)
+#         logger.info(result)
        
-        return {"message": result.stdout.strip() or "No output from device script."}
+#         return {"message": result.stdout.strip() or "No output from device script."}
+#     except Exception as e:
+#         return {"error": str(e)}
+
+@app.post("/device/do-action")
+async def device_do_action(data: DeviceActionRequest):
+    global connected_gateway
+    if connected_gateway is None:
+        return {"ok": False, "error": "No LAN gateway connected"}
+
+    command = {
+        "ip": data.ip,
+        "action": data.action,
+        "device_driver": data.device_driver
+    }
+
+    print(command,'--------------command---------')
+    try:
+        await connected_gateway.send_text(json.dumps(command))
+        return {"ok": True, "message": "Command sent to LAN gateway"}
     except Exception as e:
-        return {"error": str(e)}
+        return {"ok": False, "error": str(e)}
 
 
-
+@app.websocket("/device-bridge")
+async def device_bridge(websocket: WebSocket):
+    global connected_gateway
+    await websocket.accept()
+    connected_gateway = websocket
+    try:
+        while True:
+            msg = await websocket.receive_text()
+            logger.info(f"Gateway message: {msg}")
+    except Exception as e:
+        logger.warning(f"Gateway disconnected: {e}")
+        connected_gateway = None
     
 if __name__ == "__main__":
     uvicorn.run("main:app", host="127.0.0.1", port=8000, log_level="info")
